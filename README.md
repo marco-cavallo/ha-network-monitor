@@ -196,4 +196,17 @@ logger:
 
 ## License
 
-MIT.
+Apache License 2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+You are free to use this integration, including **commercially and inside a
+company**, to modify it and to redistribute it. In exchange the License asks
+three things:
+
+- keep the copyright notice and reproduce the `NOTICE` file in any
+  redistribution (section 4(d));
+- state clearly which files you changed (section 4(b));
+- do not use the name *Marco Cavallo* to endorse or promote your derivative
+  product (section 6).
+
+Attribution to the author and the link to the original project must not be
+removed.
