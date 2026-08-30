@@ -1,45 +1,41 @@
 # Network monitor
 
+**English** · [Italiano](README.it.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Español](README.es.md)
+
+*Home Assistant integration that watches your local network.*
+
 *By Marco Cavallo*
-
-Home Assistant custom integration that watches your local network: it scans on a
-schedule, recognises the devices Home Assistant already knows, alerts you when an
-unauthorised one appears, and keeps an eye on the devices you cannot afford to
-lose.
-
-Requires Home Assistant **2026.1+**. No Python dependencies.
 
 ---
 
+## What it is
+
+A custom integration for Home Assistant that scans your local network on a schedule, recognises the devices Home Assistant already knows, warns you when a device that is not on your trusted list appears, and keeps an eye on the ones you cannot afford to lose: router, DNS server, Zigbee coordinators, NVR.
+
+It needs no Python dependencies and no cloud service. Everything runs on your own machine.
+
 ## What it does
 
-**Network scanning** — sweeps the subnet with `nmap`, falling back to a ping and
-ARP sweep when nmap is unavailable. A device is only marked offline after several
-missed scans in a row, so one lost packet never raises a false alarm.
+**Network scanning**  
+Sweeps the subnet with `nmap`, falling back to a ping and ARP sweep when nmap is unavailable. A device is only marked offline after several missed scans in a row, so one lost packet never raises a false alarm.
 
-**Unauthorised device alerts** — any device that is not on the trusted list and
-answers a scan is flagged, raises an event and triggers a notification the first
-time it appears.
+**Unauthorised device alerts**  
+Any device that is not on the trusted list and answers a scan is flagged, raises an event and triggers a notification the first time it appears.
 
-**Availability monitoring** — a list of critical devices whose reachability
-matters: router, DNS server, Zigbee coordinators, NVR. When one stops answering
-you get an alert with how long it has been down, and another when it returns.
-Restarting Home Assistant does not produce spurious alerts, and a device that
-died while Home Assistant was down is still reported.
+**Availability monitoring**  
+A separate list of critical devices. When one stops answering you get an alert saying how long it has been down, and another when it comes back. Restarting Home Assistant produces no false alerts, and a device that died while Home Assistant was off is still reported.
 
-**Device identification** — names come from the Home Assistant device registry,
-from the device's own web interface (vendor JSON endpoints and page titles) and
-from the hardware vendor behind the MAC address, in that order.
+**Device identification**  
+Names come from the Home Assistant device registry, from the device's own web interface, and from the hardware vendor behind the MAC address.
 
-**Open port detection** — optional second pass that probes the configured ports
-over plain TCP and labels the well-known ones. Web ports produce a direct link to
-the device's interface.
+**Open port detection**  
+Optional pass that probes ports over TCP and labels the well-known ones. Web ports produce a direct link to the device's interface.
 
-**Sidebar panel** — a full page listing every device, with search, filters,
-inline renaming, free-text notes and one-click trust or monitoring.
+**Sidebar panel**  
+A full page with every device: search, filters, inline renaming, free-text notes, and one-click trust or monitoring.
 
-**Notifications** — push, email or any notify target, with Jinja templates you
-can rewrite for each of the three events, in 24 languages.
+**Notifications**  
+Push, email or any notify target, with editable templates in 24 languages.
 
 ---
 
@@ -71,7 +67,7 @@ can rewrite for each of the three events, in 24 languages.
 ### HACS (custom repository)
 
 1. HACS → three-dot menu → **Custom repositories**
-2. Repository: `https://github.com/marco-cavallo-nicim/ha-network-monitor`, type **Integration**
+2. Repository: `https://github.com/marco-cavallo/ha-network-monitor`, type **Integration**
 3. Search for **Network monitor**, download it
 4. Restart Home Assistant
 5. **Settings → Devices & Services → Add Integration → Network monitor**

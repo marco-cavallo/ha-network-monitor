@@ -74,12 +74,17 @@ from .scanner import normalize_mac
 
 _LOGGER = logging.getLogger(__name__)
 
+# Platforms forwarded on setup. device_tracker only produces entities when
+# the user opts in; it returns immediately otherwise.
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.SENSOR,
     Platform.DEVICE_TRACKER,
 ]
 
+# A whitelist entry identifies a device by MAC or by IP. MAC is preferred
+# because DHCP leases move; IP is the fallback for hosts whose MAC we never
+# resolve, and for devices pinned by a DHCP reservation.
 WHITELIST_ENTRY_SCHEMA = vol.Schema(
     vol.All(
         {
@@ -127,7 +132,13 @@ _YAML_WHITELIST_KEY = f"{DOMAIN}_yaml_whitelist"
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Import a configuration.yaml block into a config entry."""
+    """Import a configuration.yaml block into a config entry.
+
+    YAML is a convenience, not a second source of truth: the values are handed
+    to the config flow once and from then on the UI owns them. Whitelist
+    entries are the exception and stay owned by the file, so that a
+    version-controlled configuration keeps working.
+    """
     if (yaml_config := config.get(DOMAIN)) is None:
         return True
 
@@ -158,7 +169,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(
     hass: HomeAssistant, entry: NetworkMonitorConfigEntry
 ) -> bool:
-    """Set up Network monitor from a config entry."""
+    """Set up Network monitor from a config entry.
+
+    Order matters: the store is read before the first refresh so a restart
+    does not look like every device just appeared, which would fire a wave of
+    "new device" notifications.
+    """
     coordinator = NetworkMonitorCoordinator(
         hass, entry, yaml_whitelist=hass.data.get(_YAML_WHITELIST_KEY, [])
     )

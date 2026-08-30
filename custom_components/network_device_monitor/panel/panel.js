@@ -21,8 +21,13 @@
  * Talks to the integration through its own WebSocket commands.
  */
 
+// The integration domain, used to address its WebSocket commands.
 const DOMAIN = "network_device_monitor";
 
+// All styling lives in the shadow root, so nothing here can leak into the
+// Home Assistant frontend and nothing from the frontend can restyle us.
+// Colours are taken from HA's CSS variables where possible, with fallbacks,
+// so the panel follows the user's light or dark theme automatically.
 const STYLES = `
 :host {
   --nm-radius: 16px;
@@ -229,10 +234,14 @@ const ICON_SEARCH =
   'stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/>' +
   '<path d="M20 20l-3.5-3.5"/></svg>';
 
+// Every value that reaches innerHTML goes through this. Device names,
+// hostnames and vendor strings come from the network and must never be
+// treated as markup.
 const esc = (v) =>
   String(v ?? "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+// Absolute timestamp in the viewer's own locale and timezone.
 const when = (iso) => {
   if (!iso) return "mai";
   const d = new Date(iso);
@@ -243,6 +252,8 @@ const when = (iso) => {
   });
 };
 
+// Relative age ("5 min fa"). Shown next to the absolute time because
+// "how long ago" is what you actually want to know at a glance.
 const ago = (iso) => {
   if (!iso) return "";
   const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
@@ -252,6 +263,13 @@ const ago = (iso) => {
   return `${Math.round(s / 86400)} g fa`;
 };
 
+/**
+ * The panel itself.
+ *
+ * A plain custom element: no framework, no build step, no external imports.
+ * Home Assistant assigns `hass` as a property, which is our cue that the
+ * connection is ready and we can start querying.
+ */
 class NetworkMonitorPanel extends HTMLElement {
   constructor() {
     super();
@@ -268,12 +286,16 @@ class NetworkMonitorPanel extends HTMLElement {
     this._rendered = false;
   }
 
+  // Home Assistant sets this repeatedly; only the first assignment matters
+  // to us, as the later ones carry state we do not read.
   set hass(hass) {
     const first = !this._hass;
     this._hass = hass;
     if (first) this._load();
   }
 
+  // Poll while the panel is on screen. The integration scans on its own
+  // schedule, so this only decides how fresh what you see is.
   connectedCallback() {
     this._timer = setInterval(() => this._load(), 15000);
   }
@@ -297,6 +319,13 @@ class NetworkMonitorPanel extends HTMLElement {
     }
   }
 
+  /**
+   * The devices to draw, after the active filter and the search box.
+   *
+   * Sorting puts the urgent first: a monitored device that is down, then
+   * everything online, then untrusted before trusted, then by IP numerically
+   * so .10 does not sort before .9.
+   */
   _visible() {
     if (!this._data) return [];
     const q = this._query.trim().toLowerCase();
@@ -328,6 +357,9 @@ class NetworkMonitorPanel extends HTMLElement {
       });
   }
 
+  // Full redraw on every change. The list is small enough (tens of devices)
+  // that diffing would cost more than it saves, and this keeps the state in
+  // exactly one place.
   _render() {
     if (!this._rendered) {
       this.shadowRoot.innerHTML = `<style>${STYLES}</style><div id="app"></div>`;
@@ -427,6 +459,8 @@ class NetworkMonitorPanel extends HTMLElement {
     this._wire();
   }
 
+  // One device card. Colour coding: amber border for an unauthorised device
+  // that is answering, red for a monitored device that is not.
   _card(x) {
     const cls = ["card"];
     if (!x.whitelisted && x.online) cls.push("anom");
@@ -497,6 +531,8 @@ class NetworkMonitorPanel extends HTMLElement {
       .join("")}</div>`;
   }
 
+  // Attach the listeners. Called after every render because innerHTML
+  // discards the previous nodes along with their handlers.
   _wire() {
     const $ = (s) => this.shadowRoot.querySelector(s);
     const all = (s) => this.shadowRoot.querySelectorAll(s);

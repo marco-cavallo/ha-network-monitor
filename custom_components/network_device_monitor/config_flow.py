@@ -139,7 +139,11 @@ def _notify_service_options(hass) -> list[str]:
 
 
 def _settings_schema(hass, defaults: dict[str, Any]) -> vol.Schema:
-    """Build the shared settings form for both flows."""
+    """Build the settings form, shared by setup, options and reconfigure.
+
+    One schema for all three keeps them from drifting apart: a field added
+    here shows up everywhere it should.
+    """
     tpl_title, tpl_message = default_templates(hass.config.language)
     w_title, w_message = watch_templates(hass.config.language)
     r_title, r_message = recovery_templates(hass.config.language)
@@ -277,7 +281,12 @@ def _settings_schema(hass, defaults: dict[str, Any]) -> vol.Schema:
 
 
 async def _async_validate(hass, user_input: dict[str, Any]) -> dict[str, str]:
-    """Validate the settings form, returning a field -> error-key map."""
+    """Validate the settings form, returning a field -> error-key map.
+
+    Only checks what cannot be expressed by a selector: that the subnet parses
+    and is not absurdly large, and that nmap is actually installed when the
+    user pins that method explicitly.
+    """
     errors: dict[str, str] = {}
 
     try:
@@ -295,7 +304,11 @@ async def _async_validate(hass, user_input: dict[str, Any]) -> dict[str, str]:
 
 
 def _coerce(user_input: dict[str, Any]) -> dict[str, Any]:
-    """Normalise numeric selector output to plain ints."""
+    """Normalise numeric selector output to plain ints.
+
+    NumberSelector hands back floats ("30.0"); storing those would make the
+    options file ugly and the timedelta arithmetic imprecise.
+    """
     for key in (
         CONF_SCAN_INTERVAL,
         CONF_NEW_DEVICE_HOLD,
