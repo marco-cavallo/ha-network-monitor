@@ -3,11 +3,11 @@
   "name": "Network monitor",
   "version": "1.0",
   "codeowners": [
-    "@marcocavallo"
+    "@marco-cavallo-nicim"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/marcocavallo/network_device_monitor",
-  "issue_tracker": "https://github.com/marcocavallo/network_device_monitor/issues",
+  "documentation": "https://github.com/marco-cavallo-nicim/ha-network-monitor",
+  "issue_tracker": "https://github.com/marco-cavallo-nicim/ha-network-monitor/issues",
   "integration_type": "service",
   "iot_class": "local_polling",
   "single_config_entry": true,

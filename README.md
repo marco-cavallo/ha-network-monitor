@@ -71,7 +71,7 @@ can rewrite for each of the three events, in 24 languages.
 ### HACS (custom repository)
 
 1. HACS → three-dot menu → **Custom repositories**
-2. Repository: this repo's URL, type **Integration**
+2. Repository: `https://github.com/marco-cavallo-nicim/ha-network-monitor`, type **Integration**
 3. Search for **Network monitor**, download it
 4. Restart Home Assistant
 5. **Settings → Devices & Services → Add Integration → Network monitor**
