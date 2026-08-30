@@ -1,0 +1,54 @@
+scan_now:
+  name: Scan now
+  description: Run a network scan immediately instead of waiting for the next cycle.
+
+add_to_whitelist:
+  name: Add to whitelist
+  description: >-
+    Mark a device as trusted. Trusted devices never raise a notification and
+    are excluded from sensor.network_anomalous_devices.
+  fields:
+    mac:
+      name: MAC address
+      description: MAC address of the device to trust.
+      example: "AA:BB:CC:DD:EE:FF"
+      selector:
+        text:
+    ip:
+      name: IP address
+      description: IP address, used when the MAC address is unknown.
+      example: "192.168.1.42"
+      selector:
+        text:
+    name:
+      name: Name
+      description: Friendly name stored alongside the whitelist entry.
+      example: "Smart TV"
+      selector:
+        text:
+
+remove_from_whitelist:
+  name: Remove from whitelist
+  description: Stop trusting a device. Only UI-managed entries can be removed.
+  fields:
+    device:
+      name: Device
+      description: MAC or IP address of the whitelist entry to remove.
+      required: true
+      example: "AA:BB:CC:DD:EE:FF"
+      selector:
+        text:
+
+forget_device:
+  name: Forget device
+  description: >-
+    Drop a device from the inventory. The next time it appears it is treated
+    as brand new, which re-triggers notifications.
+  fields:
+    device:
+      name: Device
+      description: MAC or IP address of the device to forget.
+      required: true
+      example: "192.168.1.42"
+      selector:
+        text:

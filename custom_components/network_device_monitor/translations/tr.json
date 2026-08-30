@@ -1,0 +1,256 @@
+{
+  "title": "Network monitor",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Network monitor",
+        "description": "Scan the local network and get alerted when an unknown device appears.",
+        "data": {
+          "subnet": "Taranacak alt ağ (CIDR)",
+          "scan_interval": "Tarama aralığı",
+          "scan_method": "Tarama yöntemi",
+          "email_recipient": "E-posta alıcısı",
+          "notify_services": "Bildirim servisleri",
+          "new_device_hold": "Keep 'new device' on for",
+          "enable_device_trackers": "Create a device_tracker per device",
+          "notify_title": "Notification title (template)",
+          "notify_message": "Notification message (template)",
+          "offline_after": "Mark offline after N missed scans",
+          "enable_panel": "Kenar çubuğunda göster",
+          "port_scan": "Açık portları algıla",
+          "port_list": "Denenecek portlar",
+          "port_scan_interval": "Port probing interval",
+          "default_open_port": "Port for the Open button",
+          "watch_title": "Watched device notification title",
+          "watch_message": "Watched device notification message",
+          "recovery_title": "Geri geldi bildirimi başlığı",
+          "recovery_message": "Geri geldi bildirimi metni"
+        },
+        "data_description": {
+          "subnet": "For example 192.168.1.0/24. Maximum size is a /20.",
+          "scan_interval": "How often the network is scanned. Minimum 30 seconds.",
+          "scan_method": "'Auto' uses nmap when available and falls back to a ping and ARP sweep.",
+          "email_recipient": "Passed as the target of email notification services.",
+          "notify_services": "For example notify.smtp and notify.mobile_app_your_phone.",
+          "new_device_hold": "How long binary_sensor.network_new_device_detected stays on.",
+          "enable_device_trackers": "Off by default. Creates one entity per discovered host.",
+          "notify_title": "Jinja template. Variables: name, mac, ip, hostname, vendor, subnet, seen, count, emoji.",
+          "notify_message": "Jinja template. Same variables as the title. Leave blank to keep the default.",
+          "offline_after": "A host is only considered offline after this many consecutive scans without a reply. 1 = react immediately (noisy), 2-3 = stable.",
+          "enable_panel": "Adds a Network monitor page to the left menu with every device, search and inline editing.",
+          "port_scan": "A second pass that connects to the listed ports on online devices. Off by default.",
+          "port_list": "Comma-separated list. Defaults cover FTP, SSH, Telnet, DNS, HTTP, SMB, HTTPS, RTSP, MQTT, RDP, VNC and alternative web ports.",
+          "port_scan_interval": "Open ports rarely change: 1800 s (30 min) is a good value. Minimum 60 s.",
+          "default_open_port": "0 = choose automatically from the open ports (443/8443 → https, 80/8123/8080 → http). Otherwise always use this port.",
+          "watch_title": "Jinja template. Variables: name, mac, ip, vendor, subnet, seen, emoji, state, down_for.",
+          "watch_message": "Sent both when a watched device becomes unreachable and when it comes back.",
+          "recovery_title": "Jinja template used when a monitored device becomes reachable again.",
+          "recovery_message": "Separate from the outage message: the two events say different things."
+        }
+      },
+      "reconfigure": {
+        "title": "Network monitor settings",
+        "data": {
+          "subnet": "Taranacak alt ağ (CIDR)",
+          "scan_interval": "Tarama aralığı",
+          "scan_method": "Tarama yöntemi",
+          "email_recipient": "E-posta alıcısı",
+          "notify_services": "Bildirim servisleri",
+          "new_device_hold": "Keep 'new device' on for",
+          "enable_device_trackers": "Create a device_tracker per device",
+          "notify_title": "Notification title (template)",
+          "notify_message": "Notification message (template)",
+          "offline_after": "Mark offline after N missed scans",
+          "enable_panel": "Kenar çubuğunda göster",
+          "port_scan": "Açık portları algıla",
+          "port_list": "Denenecek portlar",
+          "port_scan_interval": "Port probing interval",
+          "default_open_port": "Port for the Open button",
+          "watch_title": "Watched device notification title",
+          "watch_message": "Watched device notification message",
+          "recovery_title": "Geri geldi bildirimi başlığı",
+          "recovery_message": "Geri geldi bildirimi metni"
+        },
+        "data_description": {
+          "subnet": "For example 192.168.1.0/24. Maximum size is a /20.",
+          "scan_interval": "How often the network is scanned. Minimum 30 seconds.",
+          "scan_method": "'Auto' uses nmap when available and falls back to a ping and ARP sweep.",
+          "email_recipient": "Passed as the target of email notification services.",
+          "notify_services": "For example notify.smtp and notify.mobile_app_your_phone.",
+          "new_device_hold": "How long binary_sensor.network_new_device_detected stays on.",
+          "enable_device_trackers": "Changing this needs a reload of the integration.",
+          "notify_title": "Jinja template. Variables: name, mac, ip, hostname, vendor, subnet, seen, count, emoji.",
+          "notify_message": "Jinja template. Same variables as the title. Leave blank to keep the default.",
+          "offline_after": "A host is only considered offline after this many consecutive scans without a reply. 1 = react immediately (noisy), 2-3 = stable.",
+          "enable_panel": "Adds a Network monitor page to the left menu with every device, search and inline editing.",
+          "port_scan": "A second pass that connects to the listed ports on online devices. Off by default.",
+          "port_list": "Comma-separated list. Defaults cover FTP, SSH, Telnet, DNS, HTTP, SMB, HTTPS, RTSP, MQTT, RDP, VNC and alternative web ports.",
+          "port_scan_interval": "Open ports rarely change: 1800 s (30 min) is a good value. Minimum 60 s.",
+          "default_open_port": "0 = choose automatically from the open ports (443/8443 → https, 80/8123/8080 → http). Otherwise always use this port.",
+          "watch_title": "Jinja template. Variables: name, mac, ip, vendor, subnet, seen, emoji, state, down_for.",
+          "watch_message": "Sent both when a watched device becomes unreachable and when it comes back.",
+          "recovery_title": "Jinja template used when a monitored device becomes reachable again.",
+          "recovery_message": "Separate from the outage message: the two events say different things."
+        }
+      }
+    },
+    "error": {
+      "invalid_subnet": "Not a valid IPv4 subnet, or larger than a /20.",
+      "nmap_missing": "The nmap binary was not found. Install it or choose another scan method."
+    },
+    "abort": {
+      "already_configured": "Network monitor is already set up.",
+      "single_instance_allowed": "Only one Network monitor instance can be configured.",
+      "invalid_subnet": "The subnet in configuration.yaml is not valid.",
+      "reconfigure_successful": "Settings updated"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Network monitor",
+        "menu_options": {
+          "settings": "Tarama ve bildirim ayarları",
+          "add_whitelist": "Güvenilir cihaz ekle",
+          "remove_whitelist": "Güvenilir cihaz kaldır",
+          "about": "Hakkında"
+        }
+      },
+      "settings": {
+        "title": "Tarama ve bildirim ayarları",
+        "data": {
+          "subnet": "Taranacak alt ağ (CIDR)",
+          "scan_interval": "Tarama aralığı",
+          "scan_method": "Tarama yöntemi",
+          "email_recipient": "E-posta alıcısı",
+          "notify_services": "Bildirim servisleri",
+          "new_device_hold": "Keep 'new device' on for",
+          "enable_device_trackers": "Create a device_tracker per device",
+          "notify_title": "Notification title (template)",
+          "notify_message": "Notification message (template)",
+          "offline_after": "Mark offline after N missed scans",
+          "enable_panel": "Kenar çubuğunda göster",
+          "port_scan": "Açık portları algıla",
+          "port_list": "Denenecek portlar",
+          "port_scan_interval": "Port probing interval",
+          "default_open_port": "Port for the Open button",
+          "watch_title": "Watched device notification title",
+          "watch_message": "Watched device notification message",
+          "recovery_title": "Geri geldi bildirimi başlığı",
+          "recovery_message": "Geri geldi bildirimi metni"
+        },
+        "data_description": {
+          "subnet": "For example 192.168.1.0/24. Maximum size is a /20.",
+          "scan_interval": "How often the network is scanned. Minimum 30 seconds.",
+          "scan_method": "'Auto' uses nmap when available and falls back to a ping and ARP sweep.",
+          "email_recipient": "Passed as the target of email notification services.",
+          "notify_services": "For example notify.smtp and notify.mobile_app_your_phone.",
+          "new_device_hold": "How long binary_sensor.network_new_device_detected stays on.",
+          "enable_device_trackers": "Changing this needs a reload of the integration.",
+          "notify_title": "Jinja template. Variables: name, mac, ip, hostname, vendor, subnet, seen, count, emoji.",
+          "notify_message": "Jinja template. Same variables as the title. Leave blank to keep the default.",
+          "offline_after": "A host is only considered offline after this many consecutive scans without a reply. 1 = react immediately (noisy), 2-3 = stable.",
+          "enable_panel": "Adds a Network monitor page to the left menu with every device, search and inline editing.",
+          "port_scan": "A second pass that connects to the listed ports on online devices. Off by default.",
+          "port_list": "Comma-separated list. Defaults cover FTP, SSH, Telnet, DNS, HTTP, SMB, HTTPS, RTSP, MQTT, RDP, VNC and alternative web ports.",
+          "port_scan_interval": "Open ports rarely change: 1800 s (30 min) is a good value. Minimum 60 s.",
+          "default_open_port": "0 = choose automatically from the open ports (443/8443 → https, 80/8123/8080 → http). Otherwise always use this port.",
+          "watch_title": "Jinja template. Variables: name, mac, ip, vendor, subnet, seen, emoji, state, down_for.",
+          "watch_message": "Sent both when a watched device becomes unreachable and when it comes back.",
+          "recovery_title": "Jinja template used when a monitored device becomes reachable again.",
+          "recovery_message": "Separate from the outage message: the two events say different things."
+        }
+      },
+      "add_whitelist": {
+        "title": "Güvenilir cihaz ekle",
+        "description": "Pick from the devices already discovered, or type a MAC or IP address by hand. Each line shows: name | IP | MAC | vendor.",
+        "data": {
+          "devices": "Bulunan cihazlar",
+          "manual": "MAC or IP address",
+          "name": "Name for the manual entry",
+          "select_all": "Select ALL {count} detected devices"
+        },
+        "data_description": {
+          "select_all": "Ignores the tick boxes above and trusts every device in the list."
+        }
+      },
+      "remove_whitelist": {
+        "title": "Güvenilir cihaz kaldır",
+        "description": "Entries defined in configuration.yaml are not listed here; edit the file to change those.",
+        "data": {
+          "devices": "Güvenilir cihazlar",
+          "remove_all": "Remove ALL {count} trusted devices"
+        },
+        "data_description": {
+          "remove_all": "Ignores the tick boxes above and empties the whitelist."
+        }
+      },
+      "about": {
+        "title": "Hakkında",
+        "description": "## {name}\n**Sürüm {version}** — By **{author}**\n\nWatches the local network, recognises devices Home Assistant already knows, and alerts you when an unauthorised one shows up.\n\n---\n\n### What it does\n\n**Network scanning**  \nSweeps the subnet on a schedule with nmap, falling back to a ping and ARP sweep when nmap is unavailable. A device is only marked offline after several missed scans in a row, so one lost packet never raises a false alarm.\n\n**Unauthorised device alerts**  \nAny device that is not on the trusted list and answers a scan is flagged, raises an event and triggers a notification the first time it appears.\n\n**Availability monitoring**  \nA separate list of critical devices whose reachability matters. When one stops answering you get an alert with how long it has been down, and a second alert when it comes back. Router, DNS server, Zigbee coordinators, NVR.\n\n**Device identification**  \nNames come from the Home Assistant device registry, from the device's own web interface (vendor JSON endpoints and page titles) and from the hardware vendor behind the MAC address, in that order.\n\n**Open port detection**  \nOptional second pass that probes the configured ports over TCP and labels the well-known ones. Web ports produce a direct link to the device's interface.\n\n**Sidebar panel**  \nA full page listing every device with search, filters, inline renaming, free-text notes and one-click trust or monitoring.\n\n**Notifications**  \nPush, email or any notify target, with Jinja templates you can rewrite for each of the three events.\n\n---\n\n### Current status\n\n| | |\n|---|---|\n| Watched network | `{subnet}` |\n| Scan method | `{method}` · {interval} s |\n| Last scan | {last_scan} |\n| Known devices | **{total}** |\n| Online now | **{online}** |\n| Unauthorised | **{anomalous}** |\n| Whitelisted | **{whitelist}** |\n| Monitored devices | **{watched}** |\n| Monitored offline | **{watched_offline}** |\n| Port detection | `{ports}` |\n| Sidebar panel | `{panel}` |\n| Named via web | **{named}** |\n\n---\n\n### Entities\n\n- `sensor.network_anomalous_devices`\n- `sensor.network_online_devices`\n- `sensor.network_watched_offline`\n- `binary_sensor.network_new_device_detected`\n\n### Services\n\n`scan_now` · `add_to_whitelist` · `remove_from_whitelist` · `forget_device` · `add_to_watchlist` · `remove_from_watchlist`\n\n### Events\n\n`network_device_monitor_new_device` · `network_device_monitor_anomalous_device` · `network_device_monitor_watched_device_down` · `network_device_monitor_watched_device_up`\n",
+        "data": {}
+      }
+    },
+    "error": {
+      "invalid_subnet": "Not a valid IPv4 subnet, or larger than a /20.",
+      "nmap_missing": "The nmap binary was not found. Install it or choose another scan method."
+    },
+    "abort": {
+      "whitelist_empty": "There are no UI-managed trusted devices to remove.",
+      "not_loaded": "The integration is not loaded; fix the setup error first."
+    }
+  },
+  "selector": {
+    "scan_method": {
+      "options": {
+        "auto": "Auto (nmap, falling back to ARP)",
+        "nmap": "nmap only",
+        "arp": "Ping and ARP sweep only"
+      }
+    }
+  },
+  "services": {
+    "scan_now": {
+      "name": "Scan now",
+      "description": "Run a network scan immediately instead of waiting for the next cycle."
+    },
+    "add_to_whitelist": {
+      "name": "Add to whitelist",
+      "description": "Mark a device as trusted so it stops raising notifications.",
+      "fields": {
+        "mac": {
+          "name": "MAC address",
+          "description": "MAC address of the device to trust."
+        },
+        "ip": {
+          "name": "IP address",
+          "description": "IP address, used when the MAC address is unknown."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Friendly name stored alongside the whitelist entry."
+        }
+      }
+    },
+    "remove_from_whitelist": {
+      "name": "Remove from whitelist",
+      "description": "Stop trusting a device. Only UI-managed entries can be removed.",
+      "fields": {
+        "device": {
+          "name": "Device",
+          "description": "MAC or IP address of the whitelist entry to remove."
+        }
+      }
+    },
+    "forget_device": {
+      "name": "Forget device",
+      "description": "Drop a device from the inventory so it is treated as new next time it appears.",
+      "fields": {
+        "device": {
+          "name": "Device",
+          "description": "MAC or IP address of the device to forget."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+# Network monitor - By Marco Cavallo
+#
+# This integration has NO Python dependencies.
+#
+# `manifest.json` therefore ships an empty "requirements" list, which means
+# Home Assistant installs nothing at setup time and the integration cannot
+# fail because of a broken wheel build.
+#
+# Why not python-nmap?
+#   python-nmap wraps the nmap binary with a *blocking* subprocess call.
+#   Calling it from an async coordinator stalls the Home Assistant event
+#   loop for the whole duration of the scan (seconds to minutes on a /24).
+#   scanner.py instead calls nmap through asyncio.create_subprocess_exec
+#   and parses the XML report (-oX -) with the standard library, so the
+#   loop stays responsive and there is one less dependency to break.
+#
+# System requirement (optional but recommended):
+#   nmap   -- gives reliable MAC addresses and vendor names.
+#             Without it the integration automatically falls back to a
+#             pure-Python ping sweep plus the kernel ARP table.
+#
+# See README.md for per-platform nmap installation instructions.

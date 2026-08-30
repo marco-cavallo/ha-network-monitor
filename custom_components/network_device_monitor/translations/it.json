@@ -1,0 +1,256 @@
+{
+  "title": "Network monitor",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Network monitor",
+        "description": "Scansiona la rete locale e avvisa quando compare un dispositivo sconosciuto.",
+        "data": {
+          "subnet": "Subnet da scansionare (CIDR)",
+          "scan_interval": "Intervallo di scansione",
+          "scan_method": "Metodo di scansione",
+          "email_recipient": "Destinatario email",
+          "notify_services": "Servizi di notifica",
+          "new_device_hold": "Mantieni 'nuovo dispositivo' attivo per",
+          "enable_device_trackers": "Crea un device_tracker per ogni dispositivo",
+          "notify_title": "Titolo della notifica (template)",
+          "notify_message": "Messaggio della notifica (template)",
+          "offline_after": "Segna offline dopo N scansioni mancate",
+          "enable_panel": "Mostra nel menu laterale",
+          "port_scan": "Rileva le porte aperte",
+          "port_list": "Porte da controllare",
+          "port_scan_interval": "Ogni quanto controllare le porte",
+          "default_open_port": "Porta del pulsante Apri",
+          "watch_title": "Titolo notifica dispositivo sorvegliato",
+          "watch_message": "Messaggio notifica dispositivo sorvegliato",
+          "recovery_title": "Titolo notifica di ripristino",
+          "recovery_message": "Messaggio notifica di ripristino"
+        },
+        "data_description": {
+          "subnet": "Ad esempio 192.168.1.0/24. Dimensione massima /20.",
+          "scan_interval": "Ogni quanto viene scansionata la rete. Minimo 30 secondi.",
+          "scan_method": "'Auto' usa nmap se disponibile, altrimenti ripiega su ping e tabella ARP.",
+          "email_recipient": "Passato come destinatario ai servizi di notifica email.",
+          "notify_services": "Ad esempio notify.smtp e notify.mobile_app_tuo_telefono.",
+          "new_device_hold": "Per quanto resta acceso binary_sensor.network_new_device_detected.",
+          "enable_device_trackers": "Disattivato di default. Crea un'entita per ogni host rilevato.",
+          "notify_title": "Template Jinja. Variabili: name, mac, ip, hostname, vendor, subnet, seen, count, emoji.",
+          "notify_message": "Template Jinja. Stesse variabili del titolo. Lascia vuoto per il default.",
+          "offline_after": "Un dispositivo viene dato per offline solo dopo questo numero di scansioni consecutive senza risposta. 1 = reazione immediata (rumorosa), 2-3 = stabile.",
+          "enable_panel": "Aggiunge una pagina Network monitor nel menu di sinistra con tutti i dispositivi, ricerca e modifica.",
+          "port_scan": "Seconda passata che prova a connettersi alle porte indicate sui dispositivi online. Disattivata di default.",
+          "port_list": "Elenco separato da virgole. Default: FTP, SSH, Telnet, DNS, HTTP, SMB, HTTPS, RTSP, MQTT, RDP, VNC e porte web alternative.",
+          "port_scan_interval": "Le porte cambiano di rado: 1800 s (30 min) è un buon valore. Minimo 60 s.",
+          "default_open_port": "0 = sceglie da sola in base alle porte aperte (443/8443 → https, 80/8123/8080 → http). Altrimenti usa sempre questa porta.",
+          "watch_title": "Template Jinja. Variabili: name, mac, ip, vendor, subnet, seen, emoji, state, down_for.",
+          "watch_message": "Inviato sia quando un dispositivo sorvegliato diventa irraggiungibile sia quando torna online.",
+          "recovery_title": "Template Jinja usato quando un dispositivo monitorato torna raggiungibile.",
+          "recovery_message": "Separato dal messaggio di caduta: i due eventi dicono cose diverse."
+        }
+      },
+      "reconfigure": {
+        "title": "Impostazioni Network monitor",
+        "data": {
+          "subnet": "Subnet da scansionare (CIDR)",
+          "scan_interval": "Intervallo di scansione",
+          "scan_method": "Metodo di scansione",
+          "email_recipient": "Destinatario email",
+          "notify_services": "Servizi di notifica",
+          "new_device_hold": "Mantieni 'nuovo dispositivo' attivo per",
+          "enable_device_trackers": "Crea un device_tracker per ogni dispositivo",
+          "notify_title": "Titolo della notifica (template)",
+          "notify_message": "Messaggio della notifica (template)",
+          "offline_after": "Segna offline dopo N scansioni mancate",
+          "enable_panel": "Mostra nel menu laterale",
+          "port_scan": "Rileva le porte aperte",
+          "port_list": "Porte da controllare",
+          "port_scan_interval": "Ogni quanto controllare le porte",
+          "default_open_port": "Porta del pulsante Apri",
+          "watch_title": "Titolo notifica dispositivo sorvegliato",
+          "watch_message": "Messaggio notifica dispositivo sorvegliato",
+          "recovery_title": "Titolo notifica di ripristino",
+          "recovery_message": "Messaggio notifica di ripristino"
+        },
+        "data_description": {
+          "subnet": "Ad esempio 192.168.1.0/24. Dimensione massima /20.",
+          "scan_interval": "Ogni quanto viene scansionata la rete. Minimo 30 secondi.",
+          "scan_method": "'Auto' usa nmap se disponibile, altrimenti ripiega su ping e tabella ARP.",
+          "email_recipient": "Passato come destinatario ai servizi di notifica email.",
+          "notify_services": "Ad esempio notify.smtp e notify.mobile_app_tuo_telefono.",
+          "new_device_hold": "Per quanto resta acceso binary_sensor.network_new_device_detected.",
+          "enable_device_trackers": "Modificarlo richiede il ricaricamento dell'integrazione.",
+          "notify_title": "Template Jinja. Variabili: name, mac, ip, hostname, vendor, subnet, seen, count, emoji.",
+          "notify_message": "Template Jinja. Stesse variabili del titolo. Lascia vuoto per il default.",
+          "offline_after": "Un dispositivo viene dato per offline solo dopo questo numero di scansioni consecutive senza risposta. 1 = reazione immediata (rumorosa), 2-3 = stabile.",
+          "enable_panel": "Aggiunge una pagina Network monitor nel menu di sinistra con tutti i dispositivi, ricerca e modifica.",
+          "port_scan": "Seconda passata che prova a connettersi alle porte indicate sui dispositivi online. Disattivata di default.",
+          "port_list": "Elenco separato da virgole. Default: FTP, SSH, Telnet, DNS, HTTP, SMB, HTTPS, RTSP, MQTT, RDP, VNC e porte web alternative.",
+          "port_scan_interval": "Le porte cambiano di rado: 1800 s (30 min) è un buon valore. Minimo 60 s.",
+          "default_open_port": "0 = sceglie da sola in base alle porte aperte (443/8443 → https, 80/8123/8080 → http). Altrimenti usa sempre questa porta.",
+          "watch_title": "Template Jinja. Variabili: name, mac, ip, vendor, subnet, seen, emoji, state, down_for.",
+          "watch_message": "Inviato sia quando un dispositivo sorvegliato diventa irraggiungibile sia quando torna online.",
+          "recovery_title": "Template Jinja usato quando un dispositivo monitorato torna raggiungibile.",
+          "recovery_message": "Separato dal messaggio di caduta: i due eventi dicono cose diverse."
+        }
+      }
+    },
+    "error": {
+      "invalid_subnet": "Subnet IPv4 non valida, oppure piu grande di una /20.",
+      "nmap_missing": "Binario nmap non trovato. Installalo o scegli un altro metodo di scansione."
+    },
+    "abort": {
+      "already_configured": "Network monitor e gia configurato.",
+      "single_instance_allowed": "Puo essere configurata una sola istanza di Network monitor.",
+      "invalid_subnet": "La subnet in configuration.yaml non e valida.",
+      "reconfigure_successful": "Impostazioni aggiornate"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Network monitor",
+        "menu_options": {
+          "settings": "Impostazioni scansione e notifiche",
+          "add_whitelist": "Aggiungi dispositivi attendibili",
+          "remove_whitelist": "Rimuovi dispositivi attendibili",
+          "about": "Informazioni"
+        }
+      },
+      "settings": {
+        "title": "Impostazioni scansione e notifiche",
+        "data": {
+          "subnet": "Subnet da scansionare (CIDR)",
+          "scan_interval": "Intervallo di scansione",
+          "scan_method": "Metodo di scansione",
+          "email_recipient": "Destinatario email",
+          "notify_services": "Servizi di notifica",
+          "new_device_hold": "Mantieni 'nuovo dispositivo' attivo per",
+          "enable_device_trackers": "Crea un device_tracker per ogni dispositivo",
+          "notify_title": "Titolo della notifica (template)",
+          "notify_message": "Messaggio della notifica (template)",
+          "offline_after": "Segna offline dopo N scansioni mancate",
+          "enable_panel": "Mostra nel menu laterale",
+          "port_scan": "Rileva le porte aperte",
+          "port_list": "Porte da controllare",
+          "port_scan_interval": "Ogni quanto controllare le porte",
+          "default_open_port": "Porta del pulsante Apri",
+          "watch_title": "Titolo notifica dispositivo sorvegliato",
+          "watch_message": "Messaggio notifica dispositivo sorvegliato",
+          "recovery_title": "Titolo notifica di ripristino",
+          "recovery_message": "Messaggio notifica di ripristino"
+        },
+        "data_description": {
+          "subnet": "Ad esempio 192.168.1.0/24. Dimensione massima /20.",
+          "scan_interval": "Ogni quanto viene scansionata la rete. Minimo 30 secondi.",
+          "scan_method": "'Auto' usa nmap se disponibile, altrimenti ripiega su ping e tabella ARP.",
+          "email_recipient": "Passato come destinatario ai servizi di notifica email.",
+          "notify_services": "Ad esempio notify.smtp e notify.mobile_app_tuo_telefono.",
+          "new_device_hold": "Per quanto resta acceso binary_sensor.network_new_device_detected.",
+          "enable_device_trackers": "Modificarlo richiede il ricaricamento dell'integrazione.",
+          "notify_title": "Template Jinja. Variabili: name, mac, ip, hostname, vendor, subnet, seen, count, emoji.",
+          "notify_message": "Template Jinja. Stesse variabili del titolo. Lascia vuoto per il default.",
+          "offline_after": "Un dispositivo viene dato per offline solo dopo questo numero di scansioni consecutive senza risposta. 1 = reazione immediata (rumorosa), 2-3 = stabile.",
+          "enable_panel": "Aggiunge una pagina Network monitor nel menu di sinistra con tutti i dispositivi, ricerca e modifica.",
+          "port_scan": "Seconda passata che prova a connettersi alle porte indicate sui dispositivi online. Disattivata di default.",
+          "port_list": "Elenco separato da virgole. Default: FTP, SSH, Telnet, DNS, HTTP, SMB, HTTPS, RTSP, MQTT, RDP, VNC e porte web alternative.",
+          "port_scan_interval": "Le porte cambiano di rado: 1800 s (30 min) è un buon valore. Minimo 60 s.",
+          "default_open_port": "0 = sceglie da sola in base alle porte aperte (443/8443 → https, 80/8123/8080 → http). Altrimenti usa sempre questa porta.",
+          "watch_title": "Template Jinja. Variabili: name, mac, ip, vendor, subnet, seen, emoji, state, down_for.",
+          "watch_message": "Inviato sia quando un dispositivo sorvegliato diventa irraggiungibile sia quando torna online.",
+          "recovery_title": "Template Jinja usato quando un dispositivo monitorato torna raggiungibile.",
+          "recovery_message": "Separato dal messaggio di caduta: i due eventi dicono cose diverse."
+        }
+      },
+      "add_whitelist": {
+        "title": "Aggiungi dispositivi attendibili",
+        "description": "Scegli tra i dispositivi gia rilevati, oppure inserisci a mano un MAC o un IP. Ogni riga mostra: nome | IP | MAC | produttore.",
+        "data": {
+          "devices": "Dispositivi rilevati",
+          "manual": "Indirizzo MAC o IP",
+          "name": "Nome per la voce inserita a mano",
+          "select_all": "Seleziona TUTTI i {count} dispositivi rilevati"
+        },
+        "data_description": {
+          "select_all": "Ignora le caselle sopra e rende attendibili tutti i dispositivi dell'elenco."
+        }
+      },
+      "remove_whitelist": {
+        "title": "Rimuovi dispositivi attendibili",
+        "description": "Le voci definite in configuration.yaml non compaiono qui: modificale nel file.",
+        "data": {
+          "devices": "Dispositivi attendibili",
+          "remove_all": "Rimuovi TUTTI i {count} dispositivi attendibili"
+        },
+        "data_description": {
+          "remove_all": "Ignora le caselle sopra e svuota la whitelist."
+        }
+      },
+      "about": {
+        "title": "Informazioni",
+        "description": "## {name}\n**Versione {version}** — By **{author}**\n\nSorveglia la rete locale, riconosce i dispositivi già noti a Home Assistant e avvisa quando ne compare uno non autorizzato.\n\n---\n\n### Cosa fa\n\n**Scansione della rete**  \nAnalizza la subnet a intervalli regolari con nmap, ripiegando su ping e tabella ARP se nmap non c'è. Un dispositivo viene dato per offline solo dopo più scansioni mancate di fila, così un pacchetto perso non genera mai un falso allarme.\n\n**Avvisi sui dispositivi non autorizzati**  \nOgni dispositivo che non è nella lista degli attendibili e risponde a una scansione viene segnalato, genera un evento e fa partire una notifica la prima volta che compare.\n\n**Monitoraggio della disponibilità**  \nUna lista separata di dispositivi critici la cui raggiungibilità conta davvero. Quando uno smette di rispondere ricevi un avviso con da quanto tempo è assente, e un secondo avviso quando torna. Router, server DNS, coordinatori Zigbee, NVR.\n\n**Identificazione dei dispositivi**  \nI nomi arrivano dal registro dispositivi di Home Assistant, dall'interfaccia web del dispositivo stesso (endpoint JSON dei produttori e titolo della pagina) e dal produttore ricavato dal MAC, in quest'ordine.\n\n**Rilevamento delle porte aperte**  \nSeconda passata opzionale che prova le porte configurate via TCP e riconosce quelle note. Le porte web generano un collegamento diretto all'interfaccia del dispositivo.\n\n**Pannello laterale**  \nUna pagina completa con tutti i dispositivi, ricerca, filtri, rinomina, note libere e un clic per rendere attendibile o mettere sotto monitoraggio.\n\n**Notifiche**  \nPush, email o qualsiasi servizio notify, con template Jinja riscrivibili per ciascuno dei tre eventi.\n\n---\n\n### Stato attuale\n\n| | |\n|---|---|\n| Rete sorvegliata | `{subnet}` |\n| Metodo di scansione | `{method}` · {interval} s |\n| Ultima scansione | {last_scan} |\n| Dispositivi conosciuti | **{total}** |\n| Online adesso | **{online}** |\n| Non autorizzati | **{anomalous}** |\n| In whitelist | **{whitelist}** |\n| Dispositivi monitorati | **{watched}** |\n| Monitorati offline | **{watched_offline}** |\n| Rilevamento porte | `{ports}` |\n| Pannello laterale | `{panel}` |\n| Identificati via web | **{named}** |\n\n---\n\n### Entità\n\n- `sensor.network_anomalous_devices`\n- `sensor.network_online_devices`\n- `sensor.network_watched_offline`\n- `binary_sensor.network_new_device_detected`\n\n### Servizi\n\n`scan_now` · `add_to_whitelist` · `remove_from_whitelist` · `forget_device` · `add_to_watchlist` · `remove_from_watchlist`\n\n### Eventi\n\n`network_device_monitor_new_device` · `network_device_monitor_anomalous_device` · `network_device_monitor_watched_device_down` · `network_device_monitor_watched_device_up`\n",
+        "data": {}
+      }
+    },
+    "error": {
+      "invalid_subnet": "Subnet IPv4 non valida, oppure piu grande di una /20.",
+      "nmap_missing": "Binario nmap non trovato. Installalo o scegli un altro metodo di scansione."
+    },
+    "abort": {
+      "whitelist_empty": "Non ci sono dispositivi attendibili gestiti da UI da rimuovere.",
+      "not_loaded": "L'integrazione non e caricata: risolvi prima l'errore di setup."
+    }
+  },
+  "selector": {
+    "scan_method": {
+      "options": {
+        "auto": "Auto (nmap, con fallback ARP)",
+        "nmap": "Solo nmap",
+        "arp": "Solo ping e tabella ARP"
+      }
+    }
+  },
+  "services": {
+    "scan_now": {
+      "name": "Scansiona adesso",
+      "description": "Esegue subito una scansione senza aspettare il ciclo successivo."
+    },
+    "add_to_whitelist": {
+      "name": "Aggiungi alla whitelist",
+      "description": "Segna un dispositivo come attendibile cosi smette di generare notifiche.",
+      "fields": {
+        "mac": {
+          "name": "Indirizzo MAC",
+          "description": "Indirizzo MAC del dispositivo da rendere attendibile."
+        },
+        "ip": {
+          "name": "Indirizzo IP",
+          "description": "Indirizzo IP, usato quando il MAC non e noto."
+        },
+        "name": {
+          "name": "Nome",
+          "description": "Nome descrittivo salvato insieme alla voce di whitelist."
+        }
+      }
+    },
+    "remove_from_whitelist": {
+      "name": "Rimuovi dalla whitelist",
+      "description": "Rende non piu attendibile un dispositivo. Solo le voci gestite da UI sono rimovibili.",
+      "fields": {
+        "device": {
+          "name": "Dispositivo",
+          "description": "MAC o IP della voce di whitelist da rimuovere."
+        }
+      }
+    },
+    "forget_device": {
+      "name": "Dimentica dispositivo",
+      "description": "Rimuove un dispositivo dall'inventario: alla prossima comparsa sara trattato come nuovo.",
+      "fields": {
+        "device": {
+          "name": "Dispositivo",
+          "description": "MAC o IP del dispositivo da dimenticare."
+        }
+      }
+    }
+  }
+}

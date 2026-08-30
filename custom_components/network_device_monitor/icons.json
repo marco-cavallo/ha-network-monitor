@@ -1,0 +1,8 @@
+{
+  "services": {
+    "scan_now": { "service": "mdi:radar" },
+    "add_to_whitelist": { "service": "mdi:shield-check" },
+    "remove_from_whitelist": { "service": "mdi:shield-remove" },
+    "forget_device": { "service": "mdi:delete-forever" }
+  }
+}

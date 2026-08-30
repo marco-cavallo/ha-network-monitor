@@ -1,0 +1,26 @@
+{
+  "domain": "network_device_monitor",
+  "name": "Network monitor",
+  "version": "1.0",
+  "codeowners": [
+    "@marcocavallo"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/marcocavallo/network_device_monitor",
+  "issue_tracker": "https://github.com/marcocavallo/network_device_monitor/issues",
+  "integration_type": "service",
+  "iot_class": "local_polling",
+  "single_config_entry": true,
+  "quality_scale": "custom",
+  "dependencies": [
+    "network",
+    "http",
+    "frontend",
+    "panel_custom",
+    "websocket_api"
+  ],
+  "after_dependencies": [
+    "notify"
+  ],
+  "requirements": []
+}
