@@ -157,12 +157,16 @@ const STYLES = `
 .title { flex: 1; min-width: 0; }
 .title .n {
   font-size: 17px; font-weight: 600; margin: 0 0 3px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  /* The name gets the full card width now that the badges sit on their own
+     row, and may wrap to a second line rather than being truncated. */
+  overflow-wrap: anywhere; line-height: 1.25;
 }
 .title .s { font-size: 12.5px; color: var(--nm-dim); }
 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 5px; }
 .dot.on { background: var(--nm-green); box-shadow: 0 0 0 3px rgba(76,175,80,.18); }
 .dot.off { background: var(--nm-dim); }
+
+.badges { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 16px 10px; }
 
 .sep { height: 1px; background: var(--nm-line); margin: 0 16px; }
 
@@ -479,6 +483,8 @@ class NetworkMonitorPanel extends HTMLElement {
               ${sub ? " · " + esc(sub) : ""}
             </div>
           </div>
+        </div>
+        <div class="badges">
           <span class="tag ${x.whitelisted ? "ok" : "no"}">${x.whitelisted ? "attendibile" : "non autorizzato"}</span>
           ${x.watched ? `<span class="tag ${x.online ? "watch" : "down"}">${x.online ? "sorvegliato" : "GIÙ"}</span>` : ""}
         </div>
