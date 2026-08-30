@@ -1,7 +1,7 @@
 {
   "domain": "network_device_monitor",
   "name": "Network monitor",
-  "version": "1.0",
+  "version": "1.0.1",
   "codeowners": [
     "@marco-cavallo"
   ],
