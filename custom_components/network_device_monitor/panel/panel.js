@@ -230,6 +230,12 @@ dialog::backdrop { background: rgba(0,0,0,.45); backdrop-filter: blur(2px); }
 .ports-none { padding: 0 16px 12px; font-size: 12px; color: var(--nm-dim); font-style: italic; }
 
 .empty { padding: 60px 20px; text-align: center; color: var(--nm-dim); }
+.stale {
+  margin: 12px var(--nm-gap) 0; padding: 10px 14px;
+  border: 1px solid rgba(255,192,8,.45); border-radius: 12px;
+  background: rgba(255,192,8,.16); color: var(--nm-text);
+  font-size: 13px; line-height: 1.45;
+}
 .foot { padding: 0 var(--nm-gap) 30px; text-align: center; color: var(--nm-dim); font-size: 12.5px; }
 `;
 
@@ -268,6 +274,21 @@ const ago = (iso) => {
 };
 
 /**
+ * Turn whatever `callWS` rejected with into something worth reading.
+ *
+ * Home Assistant rejects with a bare numeric code when the websocket is gone
+ * (ERR_CONNECTION_LOST === 3), so the naive `String(err)` puts a lone "3" on
+ * screen, which is what you get after the phone suspends the tab.
+ */
+const errText = (err) => {
+  if (err?.code === "busy") return "Scansione già in corso.";
+  const raw = err?.message ?? err?.code ?? err;
+  if (raw === 3 || raw === "3" || /connection[ _]lost|cannot connect/i.test(String(raw)))
+    return "Connessione a Home Assistant persa. Riconnessione in corso…";
+  return String(raw ?? "Errore sconosciuto");
+};
+
+/**
  * The panel itself.
  *
  * A plain custom element: no framework, no build step, no external imports.
@@ -279,6 +300,7 @@ class NetworkMonitorPanel extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this._data = null;
+    this._error = null;
     this._filter = "all";
     this._query = "";
     this._editing = null;
@@ -295,17 +317,31 @@ class NetworkMonitorPanel extends HTMLElement {
   set hass(hass) {
     const first = !this._hass;
     this._hass = hass;
-    if (first) this._load();
+    // A fresh `hass` while we are showing an error means the app shell has
+    // rebuilt its connection after a drop: that is the moment to retry.
+    if (first || this._error) this._load();
   }
 
   // Poll while the panel is on screen. The integration scans on its own
   // schedule, so this only decides how fresh what you see is.
   connectedCallback() {
     this._timer = setInterval(() => this._load(), 15000);
+    // Switching app on a phone suspends the page and tears down the websocket,
+    // so any poll that lands meanwhile fails. Reload as soon as we are back
+    // instead of leaving the failure on screen.
+    this._onWake = () => { if (!document.hidden) this._load(); };
+    document.addEventListener("visibilitychange", this._onWake);
+    window.addEventListener("focus", this._onWake);
+    window.addEventListener("online", this._onWake);
+    if (this._hass) this._load();
   }
 
   disconnectedCallback() {
     if (this._timer) clearInterval(this._timer);
+    this._timer = null;
+    document.removeEventListener("visibilitychange", this._onWake);
+    window.removeEventListener("focus", this._onWake);
+    window.removeEventListener("online", this._onWake);
   }
 
   async _call(type, extra = {}) {
@@ -314,13 +350,30 @@ class NetworkMonitorPanel extends HTMLElement {
 
   async _load() {
     if (!this._hass) return;
+    // Polling a suspended page only queues up failures nobody will see.
+    if (document.hidden) return;
     try {
       this._data = await this._call(`${DOMAIN}/devices`);
+      this._error = null;
       this._render();
     } catch (err) {
-      this._error = err?.message || String(err);
+      this._error = errText(err);
       this._render();
     }
+  }
+
+  // A user action that changes something server side, then refreshes. Without
+  // this the failure would surface as an unhandled rejection and the button
+  // would look like it did nothing.
+  async _act(type, extra = {}) {
+    try {
+      await this._call(type, extra);
+    } catch (err) {
+      this._error = errText(err);
+      this._render();
+      return;
+    }
+    this._load();
   }
 
   /**
@@ -371,7 +424,9 @@ class NetworkMonitorPanel extends HTMLElement {
     }
     const app = this.shadowRoot.getElementById("app");
 
-    if (this._error) {
+    // With data in hand a failure is a banner, not a wipe: the list stays
+    // usable and the next successful poll clears the notice by itself.
+    if (this._error && !this._data) {
       app.innerHTML = `<div class="empty"><h2>Errore</h2><p>${esc(this._error)}</p></div>`;
       return;
     }
@@ -425,6 +480,9 @@ class NetworkMonitorPanel extends HTMLElement {
                <div class="l">Scansione porte${d.default_open_port ? " · apri :" + d.default_open_port : ""}</div></div>
         </div>
       </div>
+
+      ${this._error ? `<div class="stale">${esc(this._error)}
+        Stai vedendo l'ultimo aggiornamento riuscito.</div>` : ""}
 
       <div class="bar">
         <div class="search">
@@ -571,14 +629,18 @@ class NetworkMonitorPanel extends HTMLElement {
     });
 
     all("[data-watch]").forEach((b) =>
-      b.addEventListener("click", async () => {
-        await this._call(`${DOMAIN}/set_watch`,
-          { key: b.dataset.watch, watched: b.dataset.wval === "1" });
-        this._load();
-      }));
+      b.addEventListener("click", () =>
+        this._act(`${DOMAIN}/set_watch`,
+          { key: b.dataset.watch, watched: b.dataset.wval === "1" })));
 
     $("#scan").addEventListener("click", async () => {
-      await this._call(`${DOMAIN}/scan`);
+      try {
+        await this._call(`${DOMAIN}/scan`);
+      } catch (err) {
+        this._error = errText(err);
+        this._render();
+        return;
+      }
       setTimeout(() => this._load(), 1500);
     });
 
@@ -601,11 +663,9 @@ class NetworkMonitorPanel extends HTMLElement {
       }));
 
     all("[data-trust]").forEach((b) =>
-      b.addEventListener("click", async () => {
-        await this._call(`${DOMAIN}/set_whitelist`,
-          { key: b.dataset.trust, trusted: b.dataset.val === "1" });
-        this._load();
-      }));
+      b.addEventListener("click", () =>
+        this._act(`${DOMAIN}/set_whitelist`,
+          { key: b.dataset.trust, trusted: b.dataset.val === "1" })));
 
     const dlg = $("#dlg");
     all("[data-edit]").forEach((b) =>
@@ -619,14 +679,14 @@ class NetworkMonitorPanel extends HTMLElement {
       }));
 
     $("#dlg-cancel").addEventListener("click", () => dlg.close());
-    $("#dlg-save").addEventListener("click", async () => {
-      await this._call(`${DOMAIN}/update_device`, {
+    $("#dlg-save").addEventListener("click", () => {
+      const payload = {
         key: this._editing,
         name: $("#f-name").value,
         note: $("#f-note").value,
-      });
+      };
       dlg.close();
-      this._load();
+      this._act(`${DOMAIN}/update_device`, payload);
     });
   }
 }

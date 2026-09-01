@@ -438,6 +438,10 @@ PANEL_TITLE: Final = INTEGRATION_NAME
 PANEL_ICON: Final = "mdi:radar"
 PANEL_COMPONENT: Final = "network-monitor-panel"
 PANEL_MODULE_URL: Final = f"/{DOMAIN}/panel.js"
+# What the frontend actually imports. The query string is ignored by the
+# static handler but changes with every release, so a phone that cached the
+# previous panel is forced to fetch the new one.
+PANEL_MODULE_IMPORT_URL: Final = f"{PANEL_MODULE_URL}?v={VERSION}"
 
 # --------------------------------------------------------------------------
 # WebSocket commands used by the panel
