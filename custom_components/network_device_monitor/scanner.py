@@ -51,6 +51,14 @@ RDNS_CONCURRENCY = 16
 RDNS_TIMEOUT = 2
 PORT_CONCURRENCY = 120
 PORT_TIMEOUT = 1.5
+
+# La scansione completa prova 65535 porte su un solo host: il costo lo fanno
+# le porte filtrate, che non rispondono e consumano tutto il timeout. Con
+# questi valori il caso peggiore sta sotto i due minuti e mezzo, e in pratica
+# è molto meno perché le porte chiuse rispondono RST subito.
+FULL_PORT_CONCURRENCY = 300
+FULL_PORT_TIMEOUT = 0.6
+ALL_PORTS = range(1, 65536)
 HTTP_TIMEOUT = 3.0
 HTTP_CONCURRENCY = 16
 HTTP_MAX_BYTES = 65536          # a device page is small; never slurp a stream
@@ -424,14 +432,18 @@ async def async_probe_port(ip: str, port: int, timeout: float = PORT_TIMEOUT) ->
 
 
 async def async_scan_ports(
-    targets: list[str], ports: list[int], timeout: float = PORT_TIMEOUT
+    targets: list[str],
+    ports: list[int],
+    timeout: float = PORT_TIMEOUT,
+    concurrency: int = PORT_CONCURRENCY,
 ) -> dict[str, list[int]]:
     """Probe ``ports`` on every address in ``targets``.
 
     Returns {ip: [open ports, sorted]}. Concurrency is bounded so a large
-    subnet cannot exhaust the event loop's socket budget.
+    subnet cannot exhaust the event loop's socket budget; a full sweep of a
+    single host raises it, since there the budget is spent on one address.
     """
-    semaphore = asyncio.Semaphore(PORT_CONCURRENCY)
+    semaphore = asyncio.Semaphore(concurrency)
     results: dict[str, list[int]] = {ip: [] for ip in targets}
 
     async def probe(ip: str, port: int) -> None:

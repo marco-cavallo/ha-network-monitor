@@ -102,6 +102,9 @@ from .scanner import (
     clean_label,
     async_scan_ports,
     normalize_mac,
+    ALL_PORTS,
+    FULL_PORT_CONCURRENCY,
+    FULL_PORT_TIMEOUT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -218,6 +221,8 @@ class NetworkMonitorCoordinator(DataUpdateCoordinator[dict[str, DeviceRecord]]):
         self._last_saved_at: datetime | None = None
         self._last_port_scan_at: datetime | None = None
         self._port_scan_running = False
+        # Chiave del dispositivo sotto scansione completa, per il pannello.
+        self._port_scan_target: str | None = None
         self._discovery_running = False
         self._recovered: list[DeviceRecord] = []
         self._started_at = dt_util.utcnow()
@@ -947,8 +952,14 @@ class NetworkMonitorCoordinator(DataUpdateCoordinator[dict[str, DeviceRecord]]):
             self.hass, self._async_scan_ports(), f"{DOMAIN}_port_scan"
         )
 
-    async def _async_scan_ports(self, keys: list[str] | None = None) -> None:
-        """Probe the configured ports on online hosts and store the result."""
+    async def _async_scan_ports(
+        self, keys: list[str] | None = None, full: bool = False
+    ) -> None:
+        """Probe ports on online hosts and store the result.
+
+        The periodic pass uses the configured list; a manual pass sweeps the
+        whole range, which is why it is limited to one host at a time.
+        """
         if self._port_scan_running:
             return
         if self._discovery_running:
@@ -960,7 +971,7 @@ class NetworkMonitorCoordinator(DataUpdateCoordinator[dict[str, DeviceRecord]]):
                 self._last_port_scan_at = None
             _LOGGER.debug("Port scan deferred: discovery in progress")
             return
-        ports = self.port_list
+        ports = list(ALL_PORTS) if full else self.port_list
         if not ports:
             return
 
@@ -973,8 +984,14 @@ class NetworkMonitorCoordinator(DataUpdateCoordinator[dict[str, DeviceRecord]]):
             return
 
         self._port_scan_running = True
+        self.async_update_listeners()
         try:
-            found = await async_scan_ports(list(targets), ports)
+            if full:
+                found = await async_scan_ports(
+                    list(targets), ports, FULL_PORT_TIMEOUT, FULL_PORT_CONCURRENCY
+                )
+            else:
+                found = await async_scan_ports(list(targets), ports)
         except Exception:  # noqa: BLE001 - probing must never break the scan loop
             _LOGGER.exception("Port scan failed")
             return
@@ -1047,13 +1064,35 @@ class NetworkMonitorCoordinator(DataUpdateCoordinator[dict[str, DeviceRecord]]):
         return changed
 
     async def async_scan_ports_now(self, key: str | None = None) -> str:
-        """Probe ports immediately. Returns "ok", "no_ports" or "busy"."""
-        if not self.port_list:
-            return "no_ports"
+        """Probe ports immediately. Returns "ok", "no_ports" or "busy".
+
+        A manual scan on one device sweeps every port. That takes a couple of
+        minutes, so it runs in the background and the panel follows its state
+        instead of waiting on the call.
+        """
         if self._discovery_running or self._port_scan_running:
             return "busy"
-        await self._async_scan_ports([key] if key else None)
+
+        if key is not None:
+            self._port_scan_target = key
+            self.async_update_listeners()
+            self.config_entry.async_create_background_task(
+                self.hass, self._async_full_scan(key), "cudy_full_port_scan"
+            )
+            return "ok"
+
+        if not self.port_list:
+            return "no_ports"
+        await self._async_scan_ports(None)
         return "ok"
+
+    async def _async_full_scan(self, key: str) -> None:
+        """Scansione completa di un singolo dispositivo."""
+        try:
+            await self._async_scan_ports([key], full=True)
+        finally:
+            self._port_scan_target = None
+            self.async_update_listeners()
 
     def device_url(self, record: DeviceRecord) -> str | None:
         """Best URL to reach this device's web interface, if any.
@@ -1124,6 +1163,8 @@ class NetworkMonitorCoordinator(DataUpdateCoordinator[dict[str, DeviceRecord]]):
             "subnet": self.subnet,
             "scan_interval": self.scan_interval_from(self.config_entry),
             "port_scan": self.port_scan_enabled,
+            "port_scan_running": self._port_scan_running,
+            "port_scan_target": self._port_scan_target,
             "default_open_port": self.default_open_port,
             "anomalous": len(self.anomalous_devices),
             "watched": len(watch_keys),

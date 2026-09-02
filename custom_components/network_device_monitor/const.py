@@ -22,7 +22,7 @@ from typing import Final
 
 DOMAIN: Final = "network_device_monitor"
 INTEGRATION_NAME: Final = "Network monitor"
-VERSION: Final = "1.0.2"
+VERSION: Final = "1.1.0"
 AUTHOR: Final = "Marco Cavallo"
 
 PLATFORMS_KEY: Final = "platforms"

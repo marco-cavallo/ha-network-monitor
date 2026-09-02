@@ -650,16 +650,36 @@ class NetworkMonitorPanel extends HTMLElement {
 
     all("[data-ports]").forEach((b) =>
       b.addEventListener("click", async () => {
+        const key = b.dataset.ports;
         const label = b.textContent;
-        b.textContent = "Controllo…";
         b.disabled = true;
         try {
-          await this._call(`${DOMAIN}/scan_ports`, { key: b.dataset.ports });
-          this._load();
+          await this._call(`${DOMAIN}/scan_ports`, { key });
         } catch (err) {
           b.textContent = err?.code === "busy" ? "Scansione in corso…" : "Errore";
           setTimeout(() => { b.textContent = label; b.disabled = false; }, 2500);
+          return;
         }
+
+        // La scansione manuale prova tutte le 65535 porte e gira in background:
+        // il pulsante ne segue lo stato invece di restare appeso alla chiamata.
+        const started = Date.now();
+        for (;;) {
+          const secs = Math.round((Date.now() - started) / 1000);
+          b.textContent = `Scansione completa… ${secs}s`;
+          await new Promise((r) => setTimeout(r, 2000));
+          let running = false;
+          try {
+            const d = await this._call(`${DOMAIN}/devices`);
+            running = d.port_scan_target === key;
+            this._data = d;
+          } catch (err) {
+            break;
+          }
+          if (!running) break;
+          if (Date.now() - started > 6 * 60 * 1000) break;   // rete di sicurezza
+        }
+        this._load();
       }));
 
     all("[data-trust]").forEach((b) =>
