@@ -101,6 +101,7 @@ from .scanner import (
     async_identify_web,
     clean_label,
     async_scan_ports,
+    async_verify_ports,
     normalize_mac,
     ALL_PORTS,
     FULL_PORT_CONCURRENCY,
@@ -223,6 +224,8 @@ class NetworkMonitorCoordinator(DataUpdateCoordinator[dict[str, DeviceRecord]]):
         self._port_scan_running = False
         # Chiave del dispositivo sotto scansione completa, per il pannello.
         self._port_scan_target: str | None = None
+        self._port_scan_done = 0
+        self._port_scan_total = 0
         self._discovery_running = False
         self._recovered: list[DeviceRecord] = []
         self._started_at = dt_util.utcnow()
@@ -987,9 +990,22 @@ class NetworkMonitorCoordinator(DataUpdateCoordinator[dict[str, DeviceRecord]]):
         self.async_update_listeners()
         try:
             if full:
+                def _progress(done: int, total: int) -> None:
+                    self._port_scan_done = done
+                    self._port_scan_total = total
+
+                self._port_scan_done, self._port_scan_total = 0, len(ports)
                 found = await async_scan_ports(
-                    list(targets), ports, FULL_PORT_TIMEOUT, FULL_PORT_CONCURRENCY
+                    list(targets), ports, FULL_PORT_TIMEOUT,
+                    FULL_PORT_CONCURRENCY, _progress,
                 )
+                # Una passata completa può perdere una porta aperta se il
+                # dispositivo limita le connessioni: si riprovano candidate e
+                # porte già note, una alla volta, prima di scrivere il risultato.
+                for ip, record in targets.items():
+                    found[ip] = await async_verify_ports(
+                        ip, list(found.get(ip, [])) + list(record.ports)
+                    )
             else:
                 found = await async_scan_ports(list(targets), ports)
         except Exception:  # noqa: BLE001 - probing must never break the scan loop
@@ -1165,6 +1181,8 @@ class NetworkMonitorCoordinator(DataUpdateCoordinator[dict[str, DeviceRecord]]):
             "port_scan": self.port_scan_enabled,
             "port_scan_running": self._port_scan_running,
             "port_scan_target": self._port_scan_target,
+            "port_scan_done": self._port_scan_done,
+            "port_scan_total": self._port_scan_total,
             "default_open_port": self.default_open_port,
             "anomalous": len(self.anomalous_devices),
             "watched": len(watch_keys),

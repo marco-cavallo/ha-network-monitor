@@ -603,9 +603,18 @@ class NetworkMonitorPanel extends HTMLElement {
     if (!scanning) {
       return `<button class="mini" data-ports="${esc(x.key)}">Rileva porte</button>`;
     }
+    const done = this._data.port_scan_done || 0;
+    const total = this._data.port_scan_total || 0;
+    const pct = total ? Math.floor((done / total) * 100) : 0;
     const started = this._scanStart[x.key];
     const secs = started ? Math.round((Date.now() - started) / 1000) : 0;
-    return `<button class="mini" disabled>Scansione completa… ${secs}s</button>`;
+    // Su un dispositivo che limita le connessioni la passata dura decine di
+    // minuti: senza una percentuale sembrerebbe bloccata.
+    const eta = done > 500 && started
+      ? ` · ~${Math.max(1, Math.round(((total - done) * (secs / done)) / 60))} min`
+      : "";
+    return `<button class="mini" disabled title="${done} / ${total} porte">`
+      + `Scansione… ${pct}%${eta}</button>`;
   }
 
   // Attach the listeners. Called after every render because innerHTML

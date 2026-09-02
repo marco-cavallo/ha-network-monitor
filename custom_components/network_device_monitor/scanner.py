@@ -31,6 +31,7 @@ Network monitor - By Marco Cavallo.
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 import json
 import logging
 import re
@@ -52,12 +53,16 @@ RDNS_TIMEOUT = 2
 PORT_CONCURRENCY = 120
 PORT_TIMEOUT = 1.5
 
-# La scansione completa prova 65535 porte su un solo host: il costo lo fanno
-# le porte filtrate, che non rispondono e consumano tutto il timeout. Con
-# questi valori il caso peggiore sta sotto i due minuti e mezzo, e in pratica
-# è molto meno perché le porte chiuse rispondono RST subito.
-FULL_PORT_CONCURRENCY = 300
-FULL_PORT_TIMEOUT = 0.6
+# La scansione completa insiste su un solo host, e lì il parallelismo non si
+# può alzare: misurato su un router che limita le connessioni, sopra le trenta
+# sonde simultanee smette di rispondere e le porte aperte risultano chiuse.
+# Da sedici in giù i risultati sono stabili, e il tempo non cambia perché è il
+# dispositivo a imporre il ritmo. Meglio lento e giusto che veloce e falso.
+FULL_PORT_CONCURRENCY = 16
+FULL_PORT_TIMEOUT = 2.0
+# Le porte candidate vengono riprovate una alla volta e senza fretta, così un
+# risultato non dipende da una singola sonda andata storta.
+VERIFY_TIMEOUT = 3.0
 ALL_PORTS = range(1, 65536)
 HTTP_TIMEOUT = 3.0
 HTTP_CONCURRENCY = 16
@@ -431,11 +436,28 @@ async def async_probe_port(ip: str, port: int, timeout: float = PORT_TIMEOUT) ->
                 pass
 
 
+async def async_verify_ports(
+    ip: str, ports: list[int], timeout: float = VERIFY_TIMEOUT
+) -> list[int]:
+    """Riprova le porte indicate una alla volta, con un timeout generoso.
+
+    Serve dopo una passata completa: conferma quelle trovate e recupera quelle
+    che si sapevano aperte ma che la passata ha perso, così una scansione non
+    può cancellare un risultato buono.
+    """
+    open_ports: list[int] = []
+    for port in sorted(set(ports)):
+        if await async_probe_port(ip, port, timeout):
+            open_ports.append(port)
+    return open_ports
+
+
 async def async_scan_ports(
     targets: list[str],
     ports: list[int],
     timeout: float = PORT_TIMEOUT,
     concurrency: int = PORT_CONCURRENCY,
+    progress: "Callable[[int, int], None] | None" = None,
 ) -> dict[str, list[int]]:
     """Probe ``ports`` on every address in ``targets``.
 
@@ -445,11 +467,17 @@ async def async_scan_ports(
     """
     semaphore = asyncio.Semaphore(concurrency)
     results: dict[str, list[int]] = {ip: [] for ip in targets}
+    total = len(targets) * len(ports)
+    done = 0
 
     async def probe(ip: str, port: int) -> None:
+        nonlocal done
         async with semaphore:
             if await async_probe_port(ip, port, timeout):
                 results[ip].append(port)
+        done += 1
+        if progress is not None and done % 250 == 0:
+            progress(done, total)
 
     await asyncio.gather(
         *(probe(ip, port) for ip in targets for port in ports)
