@@ -309,6 +309,8 @@ class NetworkMonitorPanel extends HTMLElement {
     try { saved = localStorage.getItem("nm_stats_open"); } catch (e) { /* private mode */ }
     this._statsOpen = saved === null ? window.innerWidth > 700 : saved === "1";
     this._timer = null;
+    // Istante di avvio per dispositivo, per il contatore della scansione.
+    this._scanStart = {};
     this._rendered = false;
   }
 
@@ -570,9 +572,7 @@ class NetworkMonitorPanel extends HTMLElement {
           <button class="mini ${x.watched ? "unwatch" : "watch"}"
                   data-watch="${esc(x.key)}" data-wval="${x.watched ? "0" : "1"}">
             ${x.watched ? "Non monitorare" : "Monitora"}</button>
-          ${this._data.port_scan
-            ? `<button class="mini" data-ports="${esc(x.key)}">Rileva porte</button>`
-            : ""}
+          ${this._data.port_scan ? this._portsButton(x) : ""}
         </div>
       </div>`;
   }
@@ -593,6 +593,19 @@ class NetworkMonitorPanel extends HTMLElement {
         return `<span class="port ${cls}" title="Porta ${p.port}">${esc(lbl)}</span>`;
       })
       .join("")}</div>`;
+  }
+
+  // Il pulsante si disegna dallo stato: il pannello si ridisegna ogni 15
+  // secondi e scrivere l'avanzamento sull'elemento catturato al clic lo
+  // faceva sparire, facendo sembrare che la scansione non partisse.
+  _portsButton(x) {
+    const scanning = this._data.port_scan_target === x.key;
+    if (!scanning) {
+      return `<button class="mini" data-ports="${esc(x.key)}">Rileva porte</button>`;
+    }
+    const started = this._scanStart[x.key];
+    const secs = started ? Math.round((Date.now() - started) / 1000) : 0;
+    return `<button class="mini" disabled>Scansione completa… ${secs}s</button>`;
   }
 
   // Attach the listeners. Called after every render because innerHTML
@@ -651,34 +664,27 @@ class NetworkMonitorPanel extends HTMLElement {
     all("[data-ports]").forEach((b) =>
       b.addEventListener("click", async () => {
         const key = b.dataset.ports;
-        const label = b.textContent;
-        b.disabled = true;
+        this._scanStart[key] = Date.now();
         try {
           await this._call(`${DOMAIN}/scan_ports`, { key });
         } catch (err) {
+          delete this._scanStart[key];
           b.textContent = err?.code === "busy" ? "Scansione in corso…" : "Errore";
-          setTimeout(() => { b.textContent = label; b.disabled = false; }, 2500);
+          setTimeout(() => this._load(), 2500);
           return;
         }
 
-        // La scansione manuale prova tutte le 65535 porte e gira in background:
-        // il pulsante ne segue lo stato invece di restare appeso alla chiamata.
-        const started = Date.now();
+        // La scansione manuale prova tutte le 65535 porte e gira in background.
+        // Si ricarica finché il coordinator segnala di aver finito; l'etichetta
+        // la disegna _portsButton, quindi sopravvive ai ridisegni periodici.
+        const deadline = Date.now() + 6 * 60 * 1000;
         for (;;) {
-          const secs = Math.round((Date.now() - started) / 1000);
-          b.textContent = `Scansione completa… ${secs}s`;
-          await new Promise((r) => setTimeout(r, 2000));
-          let running = false;
-          try {
-            const d = await this._call(`${DOMAIN}/devices`);
-            running = d.port_scan_target === key;
-            this._data = d;
-          } catch (err) {
-            break;
-          }
-          if (!running) break;
-          if (Date.now() - started > 6 * 60 * 1000) break;   // rete di sicurezza
+          await new Promise((r) => setTimeout(r, 3000));
+          await this._load();
+          if (this._data.port_scan_target !== key) break;
+          if (Date.now() > deadline) break;
         }
+        delete this._scanStart[key];
         this._load();
       }));
 
